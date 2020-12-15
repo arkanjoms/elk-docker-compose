@@ -1,0 +1,93 @@
+version: '3'
+
+services: 
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        deploy:
+            resources:
+                limits:
+                    memory: 512m
+                reservations:
+                    memory: 300m
+        environment:
+            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+            - discovery.type=single-node
+        volumes:
+            - elk_data:/usr/share/elasticsearch/data
+        networks:
+            - elk
+
+    # logstash:
+    #     image: docker.elastic.co/logstash/logstash:${ELK_VERSION}
+    #     depends_on:
+    #         - elasticsearch
+    #     ports:
+    #         - "5044:5044"
+    #         - "5000:5000/tcp"
+    #         - "5000:5000/udp"
+    #         - "9600:9600"
+    #     environment:
+    #         - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+    #     volumes:
+    #         - "./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro"
+    #         - "./logstash/pipeline:/usr/share/logstash/pipeline:ro"
+    #     networks:
+    #         - elk
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
+        depends_on:
+            - elasticsearch
+        deploy:
+            resources:
+                limits:
+                    memory: 300m
+                reservations:
+                    memory: 200m
+        ports:
+            - "5601:5601"
+        volumes:
+            - "./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro"
+        networks:
+            - elk
+    
+    apm:
+        image: docker.elastic.co/apm/apm-server:${ELK_VERSION}
+        depends_on:
+            - elasticsearch
+            - kibana
+        deploy:
+            resources:
+                limits:
+                    memory: 30m
+                reservations:
+                    memory: 10m
+        ports:
+            - "8200:8200"
+        volumes:
+            - "./apm/config/apm.yml:/usr/share/apm-server/apm-server.yml"
+        networks:
+            - elk
+
+    # metricbeat:
+    #     image: docker.elastic.co/beats/metricbeat:${ELK_VERSION}
+    #     user: root
+    #     command: ["--strict.perms=false", "-system.hostfs=/hostfs"]
+    #     depends_on:
+    #         - elasticsearch
+    #         - kibana
+    #     volumes:
+    #         - "./metricbeat/config/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:rw"
+    #         - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    #         - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
+    #     networks:
+    #         - elk
+
+networks:
+    elk:
+
+volumes:
+    elk_data:
