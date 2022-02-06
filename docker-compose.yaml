@@ -27,11 +27,13 @@ services:
         deploy:
             resources:
                 limits:
-                    memory: 300m
+                    memory: 512m
                 reservations:
                     memory: 200m
         ports:
             - "5601:5601"
+        environment:
+            - NODE_OPTIONS=--max_old_space_size=4096
         volumes:
             - "./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro"
         networks:
@@ -51,7 +53,7 @@ services:
         ports:
             - "8200:8200"
         volumes:
-            - "./apm/config/apm.yml:/usr/share/apm-server/apm-server.yml"
+            - "./apm/config/apm.yml:/usr/share/apm-server/apm-server.yml:rw"
         networks:
             - elk
 

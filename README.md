@@ -2,16 +2,19 @@
 
 ELK Stack up with `docker-compose`.
 
+### pre requisites
+
+* docker
+* docker-compose
+* make
+
 ### Running
 
 To execute run the command bellow:
 
 ```bash
-$ docker-compose --compatibility up -d
+$ make start
 ```
-
-
-> The `--compatibility` option use configuration in `deploy` definition in compose file.
 
 ----
 Rafael Ramos
